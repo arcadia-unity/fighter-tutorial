@@ -1,0 +1,4 @@
+[submodule "Arcadia"]
+	path = Arcadia
+	url = https://github.com/arcadia-unity/Arcadia.git
+	branch = defmutable-extension

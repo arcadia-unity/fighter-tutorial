@@ -6,265 +6,232 @@
             Collision2D Physics2D]
            ArcadiaState))
 
-(def max-velocity 1)
-(def acceleration 0.001)
+;; The following is completed code for the tutorial.
+;; You can follow along by either uncommenting chunks of code as the
+;; tutorial gets to them, or writing your own in step with the
+;; tutorial. To see the full game, uncomment everything below and
+;; run (setup) from the repl.
 
-(defn bearing-vector [angle]
-  (let [angle (* Mathf/Deg2Rad angle)]
-    (v2 (Mathf/Cos angle) (Mathf/Sin angle))))
+;; (def max-velocity 1)
+;; (def acceleration 0.001)
 
-(defn abs-angle [v]
-  (* Mathf/Rad2Deg
-     (Mathf/Atan2 (.y v) (.x v))))
+;; (defn bearing-vector [angle]
+;;   (let [angle (* Mathf/Deg2Rad angle)]
+;;     (v2 (Mathf/Cos angle) (Mathf/Sin angle))))
 
-(defn controller-vector []
-  (v2 (Input/GetAxis "Horizontal")
-    (Input/GetAxis "Vertical")))
+;; (defn abs-angle [v]
+;;   (* Mathf/Rad2Deg
+;;      (Mathf/Atan2 (.y v) (.x v))))
 
-(defn wasd-key []
-  (or (Input/GetKey "w")
-      (Input/GetKey "a")
-      (Input/GetKey "s")
-      (Input/GetKey "d")))
+;; (defn controller-vector []
+;;   (v2 (Input/GetAxis "Horizontal")
+;;     (Input/GetAxis "Vertical")))
 
-(defn do-ignore-collisions [^Collider2D col1, ^Collider2D col2]
-  (Physics2D/IgnoreCollision col1 col2 true)
-  (Physics2D/IgnoreCollision col2 col1 true))
+;; (defn wasd-key []
+;;   (or (Input/GetKey "w")
+;;       (Input/GetKey "a")
+;;       (Input/GetKey "s")
+;;       (Input/GetKey "d")))
 
-(defn move-forward [^Rigidbody2D rb, distance]
-  (.MovePosition rb
-    (v2+ (.position rb)
-      (v2* (bearing-vector (.rotation rb))
-        distance))))
+;; (defn do-ignore-collisions [^Collider2D col1, ^Collider2D col2]
+;;   (Physics2D/IgnoreCollision col1 col2 true)
+;;   (Physics2D/IgnoreCollision col2 col1 true))
 
-;; ============================================================
-;; health
-;; can be further parametrized when this is working
-(defn check-health [obj k]
-  (let [{:keys [health]} (state obj k)]
-    (when (<= health 0)
-      (retire obj))))
+;; (defn move-forward [^Rigidbody2D rb, distance]
+;;   (.MovePosition rb
+;;     (v2+ (.position rb)
+;;       (v2* (bearing-vector (.rotation rb))
+;;         distance))))
 
-;; health, remove from scene when zero
-;; expects to be keyed at ::health
-(def health-role
-  {:state {:health 1}
-   :update #'check-health})
+;; ;; ============================================================
+;; ;; health
+;; ;; can be further parametrized when this is working
+;; (defn check-health [obj k]
+;;   (let [{:keys [health]} (state obj k)]
+;;     (when (<= health 0)
+;;       (retire obj))))
 
-(defn damage [obj amt]
-  (update-state obj ::health update :health - amt))
+;; ;; health, remove from scene when zero
+;; ;; expects to be keyed at ::health
+;; (def health-role
+;;   {:state {:health 1}
+;;    :update #'check-health})
 
-;; ============================================================
-;; bullet
+;; (defn damage [obj amt]
+;;   (update-state obj ::health update :health - amt))
 
-(def bullet-layer (UnityEngine.LayerMask/NameToLayer "bullets"))
+;; ;; ============================================================
+;; ;; bullet
 
-(defn bullet? [^GameObject obj]
-  (= (.layer obj) bullet-layer))
+;; (def bullet-layer (UnityEngine.LayerMask/NameToLayer "bullets"))
 
-;; ------------------------------------------------------------
-;; bullet collision
+;; (defn bullet? [^GameObject obj]
+;;   (= (.layer obj) bullet-layer))
 
-(defrole bullet-collision
-  (on-trigger-enter2d [bullet, ^Collider2D collider, k]
-    ;; this part is stupid
-    (when (cmpt (.. collider gameObject) ArcadiaState)
-      (let [obj2 (.. collider gameObject)]
-        (when (state obj2 ::health) ;; there should be a fast has-state? predicate
-          (damage obj2 1)
-          (retire bullet))))))
+;; ;; ------------------------------------------------------------
+;; ;; bullet collision
 
-;; ------------------------------------------------------------
-;; restrict distance from shooter (bullet range)
+;; (defrole bullet-collision
+;;   (on-trigger-enter2d [bullet, ^Collider2D collider, k]
+;;     ;; this part is stupid
+;;     (when (cmpt (.. collider gameObject) ArcadiaState)
+;;       (let [obj2 (.. collider gameObject)]
+;;         (when (state obj2 ::health) ;; there should be a fast has-state? predicate
+;;           (damage obj2 1)
+;;           (retire bullet))))))
 
-;; should be time-based
+;; ;; ------------------------------------------------------------
+;; ;; restrict distance from shooter (bullet range)
 
-(defrole lifespan-role 
-  :state {:start System.DateTime/Now
-          :lifespan 0}
-  (update [obj k]
-    (let [{:keys [start lifespan]} (state obj k)]
-      (when (< lifespan (.TotalMilliseconds (.Subtract System.DateTime/Now start)))
-        (retire obj)))))
+;; ;; should be time-based
 
-;; ------------------------------------------------------------
-;; bullet movement
+;; (defrole lifespan-role 
+;;   :state {:start System.DateTime/Now
+;;           :lifespan 0}
+;;   (update [obj k]
+;;     (let [{:keys [start lifespan]} (state obj k)]
+;;       (when (< lifespan (.TotalMilliseconds (.Subtract System.DateTime/Now start)))
+;;         (retire obj)))))
 
-(defrole bullet-movement-role
-  (fixed-update [bullet k]
-    (with-cmpt bullet [rb Rigidbody2D]
-      (move-forward rb 0.2))))
+;; ;; ------------------------------------------------------------
+;; ;; bullet movement
 
-;; ------------------------------------------------------------
-;; bullet roles
+;; (defrole bullet-movement-role
+;;   (fixed-update [bullet k]
+;;     (with-cmpt bullet [rb Rigidbody2D]
+;;       (move-forward rb 0.2))))
 
-(def bullet-roles
-  {::movement bullet-movement-role
-   ::lifespan (assoc-in lifespan-role [:state :lifespan] 2e3) ;; bullets last two seconds
-   ::collision bullet-collision})
+;; ;; ------------------------------------------------------------
+;; ;; bullet roles
 
-;; ------------------------------------------------------------
-;; shooting
-;; hm actually this is more of a functional thing than a role
+;; (def bullet-roles
+;;   {::movement bullet-movement-role
+;;    ::lifespan (assoc-in lifespan-role [:state :lifespan] 2e3) ;; bullets last two seconds
+;;    ::collision bullet-collision})
 
-(defn shoot [start bearing]
-  (let [bullet (GameObject/Instantiate (Resources/Load "missile" GameObject))]
-    (with-cmpt bullet [rb Rigidbody2D
-                       tr Transform]
-      (set! (.position tr) (v3 (.x start) (.y start) 1))
-      (.MoveRotation rb bearing))
-    (roles+ bullet
-      (-> bullet-roles
-          (assoc-in [::lifespan :state :start] System.DateTime/Now)))
-    bullet))
+;; ;; ------------------------------------------------------------
+;; ;; shooting
+;; ;; hm actually this is more of a functional thing than a role
 
-(defn shooter-shoot [obj]
-  (with-cmpt obj [rb Rigidbody2D]
-    (let [bullet (shoot (.position rb) (.rotation rb))]
-      (do-ignore-collisions (cmpt obj Collider2D) (cmpt bullet Collider2D))
-      bullet)))
+;; (defn shoot [start bearing]
+;;   (let [bullet (GameObject/Instantiate (Resources/Load "missile" GameObject))]
+;;     (with-cmpt bullet [rb Rigidbody2D
+;;                        tr Transform]
+;;       (set! (.position tr) (v3 (.x start) (.y start) 1))
+;;       (.MoveRotation rb bearing))
+;;     (roles+ bullet
+;;       (-> bullet-roles
+;;           (assoc-in [::lifespan :state :start] System.DateTime/Now)))
+;;     bullet))
 
-;; ============================================================
-;; player
+;; (defn shooter-shoot [obj]
+;;   (with-cmpt obj [rb Rigidbody2D]
+;;     (let [bullet (shoot (.position rb) (.rotation rb))]
+;;       (do-ignore-collisions (cmpt obj Collider2D) (cmpt bullet Collider2D))
+;;       bullet)))
 
-;; ------------------------------------------------------------
-;; player movement
+;; ;; ============================================================
+;; ;; player
 
-(defn player-movement-fixed-update [obj k]
-  (with-cmpt obj [rb Rigidbody2D]
-    (when (wasd-key)
-      (.MoveRotation rb (abs-angle (controller-vector)))
-      (set! (.angularVelocity rb) 0)
-      (.AddForce rb
-        (v2* (bearing-vector (.rotation rb))
-          3)))))
+;; ;; ------------------------------------------------------------
+;; ;; player movement
 
-(def player-movement-role
-  {:fixed-update #'player-movement-fixed-update})
+;; (defn player-movement-fixed-update [obj k]
+;;   (with-cmpt obj [rb Rigidbody2D]
+;;     (when (wasd-key)
+;;       (.MoveRotation rb (abs-angle (controller-vector)))
+;;       (set! (.angularVelocity rb) 0)
+;;       (.AddForce rb
+;;         (v2* (bearing-vector (.rotation rb))
+;;           3)))))
 
-;; ------------------------------------------------------------
-;; player shooting
+;; (def player-movement-role
+;;   {:fixed-update #'player-movement-fixed-update})
 
-(defrole player-shooting-role
-  (update [obj k]
-    (with-cmpt obj [rb Rigidbody2D]
-      (when (Input/GetKeyDown "space")
-        (shooter-shoot obj)))))
+;; ;; ------------------------------------------------------------
+;; ;; player shooting
 
-;; ------------------------------------------------------------
-;; player roles
-;; maybe punt more
+;; (defrole player-shooting-role
+;;   (update [obj k]
+;;     (with-cmpt obj [rb Rigidbody2D]
+;;       (when (Input/GetKeyDown "space")
+;;         (shooter-shoot obj)))))
 
-(def player-roles
-  {::shooting player-shooting-role
-   ::movement player-movement-role
-   ::health (update health-role :state assoc :health 10)})
+;; ;; ------------------------------------------------------------
+;; ;; player roles
+;; ;; maybe punt more
 
-;; ============================================================
-;; villain
+;; (def player-roles
+;;   {::shooting player-shooting-role
+;;    ::movement player-movement-role
+;;    ::health (update health-role :state assoc :health 10)})
 
-;; ------------------------------------------------------------
-;; villain shooting
+;; ;; ============================================================
+;; ;; villain
 
-(defrole villain-shooting-role
-  :state {:last-shot System.DateTime/Now
-          :target nil}
-  (update [obj k]
-    (let [{:keys [target last-shot]} (state obj k)
-          now System.DateTime/Now]
-      (when (and target (< 1000 (.TotalMilliseconds (.Subtract now last-shot))))
-        (update-state obj k assoc :last-shot now)
-        (shooter-shoot obj)))))
+;; ;; ------------------------------------------------------------
+;; ;; villain shooting
 
-;; ------------------------------------------------------------
-;; villain movement
+;; (defrole villain-shooting-role
+;;   :state {:last-shot System.DateTime/Now
+;;           :target nil}
+;;   (update [obj k]
+;;     (let [{:keys [target last-shot]} (state obj k)
+;;           now System.DateTime/Now]
+;;       (when (and target (< 1000 (.TotalMilliseconds (.Subtract now last-shot))))
+;;         (update-state obj k assoc :last-shot now)
+;;         (shooter-shoot obj)))))
 
-(defrole villain-movement-role
-  :state {:target nil}
-  (fixed-update [obj k]
-    (let [{:keys [target]} (state obj k)]
-      (when (not (null-obj? target))
-        (with-cmpt obj [rb1 Rigidbody2D]
-          (with-cmpt target [rb2 Rigidbody2D]
-            (let [pos-diff (v2- (.position rb2) (.position rb1))
-                  rot-diff (Vector2/SignedAngle
-                             (bearing-vector (.rotation rb1))
-                             pos-diff)]
-              (.MoveRotation rb1
-                (+ (.rotation rb1)
-                   (Mathf/Clamp -1 rot-diff 1))))))))))
+;; ;; ------------------------------------------------------------
+;; ;; villain movement
 
-;; ============================================================
-;; housekeeping
+;; (defrole villain-movement-role
+;;   :state {:target nil}
+;;   (fixed-update [obj k]
+;;     (let [{:keys [target]} (state obj k)]
+;;       (when (not (null-obj? target))
+;;         (with-cmpt obj [rb1 Rigidbody2D]
+;;           (with-cmpt target [rb2 Rigidbody2D]
+;;             (let [pos-diff (v2- (.position rb2) (.position rb1))
+;;                   rot-diff (Vector2/SignedAngle
+;;                              (bearing-vector (.rotation rb1))
+;;                              pos-diff)]
+;;               (.MoveRotation rb1
+;;                 (+ (.rotation rb1)
+;;                    (Mathf/Clamp -1 rot-diff 1))))))))))
 
-(def housekeeping-registry
-  (atom {}))
+;; ;; ------------------------------------------------------------
+;; ;; villain roles
 
-(defn register [key obj]
-  (swap! housekeeping-registry update key
-    #(if % (conj % obj) #{obj})))
+;; (def villain-roles
+;;   {::shooting villain-shooting-role
+;;    ::movement villain-movement-role
+;;    ::health (update health-role :state assoc :health 10)})
 
-(defn unregister [key obj]
-  (swap! housekeeping-registry
-    (fn [hr]
-      (if-let [objs (get hr key)]
-        (let [objs' (disj objs obj)]
-          (if (empty? objs')
-            (dissoc hr key) ; Remove empty sets
-            (assoc hr objs')))
-        hr))))
+;; (defn make-villain [protagonist]
+;;   (let [villain (GameObject/Instantiate (Resources/Load "villain" GameObject))]
+;;     (roles+ villain
+;;       (-> villain-roles
+;;           (assoc-in [::shooting :state :target] protagonist)
+;;           (assoc-in [::movement :state :target] protagonist)))))
 
-(defn get-registered [key]
-  (get @housekeeping-registry key))
+;; ;; ============================================================
+;; ;; player
 
-(defn registered? [key obj]
-  (contains? (get-registered key) obj))
+;; ;; Other solutions exist.
+;; (defonce player-atom
+;;   (atom nil))
 
-(defrole housekeeping-role
-  :state {:key nil}
-  (awake [obj k]
-    (let [{:keys [key]} (state obj k)]
-      (register key obj)))
-  (on-destroy [obj k]
-    (let [{:keys [key]} (state obj k)]
-      (unregister key obj))))
+;; ;; ============================================================
+;; ;; setup
 
-(defn make-housekeeping-role [key]
-  (assoc-in housekeeping-role [:state :key] key))
-
-;; ------------------------------------------------------------
-;; villain roles
-
-(def villain-roles
-  {::shooting villain-shooting-role
-   ::movement villain-movement-role
-   ::health (update health-role :state assoc :health 10)
-   ::villain-registry (make-housekeeping-role ::villain-registry)})
-
-(defn make-villain [protagonist]
-  (let [villain (GameObject/Instantiate (Resources/Load "villain" GameObject))]
-    (roles+ villain
-      (-> villain-roles
-          (assoc-in [::shooting :state :target] protagonist)
-          (assoc-in [::movement :state :target] protagonist)))))
-
-;; ============================================================
-;; player
-
-;; Other solutions exist.
-(defonce player-atom
-  (atom nil))
-
-;; ============================================================
-;; setup
-
-(defn setup []
-  (let [bullets (UnityEngine.LayerMask/NameToLayer "bullets")]
-    (Physics2D/IgnoreLayerCollision (int bullets) (int bullets) true))
-  (when @player-atom (retire @player-atom))
-  (let [player (GameObject/Instantiate (Resources/Load "fighter"))]
-    (set! (.name player) "player")
-    (roles+ player player-roles)
-    (make-villain player)
-    (reset! player-atom player)))
+;; (defn setup []
+;;   (let [bullets (UnityEngine.LayerMask/NameToLayer "bullets")]
+;;     (Physics2D/IgnoreLayerCollision (int bullets) (int bullets) true))
+;;   (when @player-atom (retire @player-atom))
+;;   (let [player (GameObject/Instantiate (Resources/Load "fighter"))]
+;;     (set! (.name player) "player")
+;;     (roles+ player player-roles)
+;;     (make-villain player)
+;;     (reset! player-atom player)))
 

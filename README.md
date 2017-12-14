@@ -292,7 +292,7 @@ We add this functionality to the player by going back and editing `player-roles`
 
 ## The enemy
 
-We can create the enemy using the same technique: define roles, attach them to a GameObject. Note the reuse of `shooter-shoot` and `health-role`.
+We can create the enemy using the same technique: define roles, attach them to a GameObject. Note the reuse of `shooter-shoot`.
 
 ```clojure
 ;; villain shooting

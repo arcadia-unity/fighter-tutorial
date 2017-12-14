@@ -8,7 +8,7 @@ This is bare-bones, out-of-the-box Arcadia. Many libraries exist that extend its
 
 This tutorial assumes Unity version 2017.2.0f3, but should work in other recent versions. To check your Unity version, go to `Unity > About Unity` in the editor menubar.
 
-1. Open Unity and create a new Unity project. The name doesn't matter, but for clarity here we'll refer to it as `fighter-tutorial`.
+1. Open Unity and create a new Unity project in 2D mode. The name doesn't matter, but for clarity here we'll refer to it as `fighter-tutorial`.
 2. `cd` into `fighter-tutorial/Assets`.
 3. `git clone https://github.com/arcadia-unity/fighter-tutorial.git .`
 4. `git submodule init`
@@ -18,6 +18,9 @@ Tab into Unity (or open it if it was closed). Arcadia will load.
 
 6. Once Arcadia has loaded, in the editor menubar select `Arcadia > Build > Internal Namespaces`. This will compile the core Arcadia namespaces for faster startup times.
 7. Connect to Arcadia using your favorite editor (instructions here).
+8. Open the fighter tutorial scene by going to `File > Open Scene` and selecting `fighter.unity`.
+
+If you forgot to create the new project in 2D mode, press the `2D` button in the Scene view.
 
 Starter code for the following walkthrough, with the completed file commented out, can be found at `fighter-tutorial/Assets/fighter_tutorial/core.clj`.
 

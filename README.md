@@ -17,8 +17,9 @@ This tutorial assumes Unity version 2017.2.0f3, but should work in other recent 
 Tab into Unity (or open it if it was closed). Arcadia will load.
 
 6. Once Arcadia has loaded, in the editor menubar select `Arcadia > Build > Internal Namespaces`. This will compile the core Arcadia namespaces for faster startup times.
-7. Connect to Arcadia using your favorite editor (instructions here).
-8. Open the fighter tutorial scene by going to `File > Open Scene` and selecting `fighter.unity`.
+7. Open the fighter tutorial scene by going to `File > Open Scene` and selecting `fighter.unity`.
+9. Press the play button at the top of the editor.
+8. Connect to Arcadia using your favorite editor (instructions here).
 
 If you forgot to create the new project in 2D mode, press the `2D` button in the Scene view.
 

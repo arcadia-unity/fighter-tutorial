@@ -19,7 +19,7 @@ Tab into Unity (or open it if it was closed). Arcadia will load.
 6. Once Arcadia has loaded, in the editor menubar select `Arcadia > Build > Internal Namespaces`. This will compile the core Arcadia namespaces for faster startup times.
 7. Connect to Arcadia using your favorite editor (instructions here).
 
-
+Starter code for the following walkthrough, with the completed file commented out, can be found at `fighter-tutorial/Assets/fighter_tutorial/core.clj`.
 
 ## Overview of the Arcadia Role System
 

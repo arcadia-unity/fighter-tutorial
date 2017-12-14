@@ -217,20 +217,6 @@ This can get a little tedious, however. Arcadia provides a `defrole` macro to sp
         (retire obj)))))
 ```
 
-This is exactly equivalent to:
-
-```clojure
-(defn lifespan-role-update [obj k]
-  (let [{:keys [start lifespan]} (state obj k)]
-    (when (< lifespan (.TotalMilliseconds (.Subtract System.DateTime/Now start)))
-      (retire obj))))
-
-(def lifespan-role
-  {:state {:start System.DateTime/Now
-           :lifespan 0}
-   :update #'lifespan-role-update})
-```
-
 We'll use `defrole` from now on.
 
 We want to avoid bullet self-collision. In Unity we can do this by setting the `"bullets"` layer to avoid collisions with itself. Modify `setup` to do so:

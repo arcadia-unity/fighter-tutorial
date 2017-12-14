@@ -228,7 +228,7 @@ This is exactly equivalent to:
 (def lifespan-role
   {:state {:start System.DateTime/Now
            :lifespan 0}
-   :update #'lifespan-update})
+   :update #'lifespan-role-update})
 ```
 
 We'll use `defrole` from now on.

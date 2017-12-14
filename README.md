@@ -4,6 +4,23 @@ This tutorial assumes familiarity with Clojure, and a basic understanding of Uni
 
 This is bare-bones, out-of-the-box Arcadia. Many libraries exist that extend its functionality further.
 
+## Project Setup
+
+This tutorial assumes Unity version 2017.2.0f3, but should work in other recent versions. To check your Unity version, go to `Unity > About Unity` in the editor menubar.
+
+1. Open Unity and create a new Unity project. The name doesn't matter, but for clarity here we'll refer to it as `fighter-tutorial`.
+2. `cd` into `fighter-tutorial/Assets`.
+3. `git clone https://github.com/arcadia-unity/fighter-tutorial.git .`
+4. `git submodule init`
+5. `git submodule update`
+
+Tab into Unity (or open it if it was closed). Arcadia will load.
+
+6. Once Arcadia has loaded, in the editor menubar select `Arcadia > Build > Internal Namespaces`. This will compile the core Arcadia namespaces for faster startup times.
+7. Connect to Arcadia using your favorite editor (instructions here).
+
+
+
 ## Overview of the Arcadia Role System
 
 Arcadia provides an opt-in bridge to the scene graph, representing bundles of state and behavior as persistent maps called 'roles'. The `:state` entry holds data, and the other entries associate Unity [messages](https://docs.unity3d.com/Manual/EventFunctions.html) (also known as "event functions") with `IFn` instances, encoded as `:update`, `:fixed-update`, `:on-collision-enter`, etc (the complete list can be found in the `arcadia.core/hook-types` map). When a message is dispatched to the GameObject, any `IFn`s associated with that message via an attached role will be called.

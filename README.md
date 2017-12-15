@@ -248,7 +248,8 @@ Finally, the roles map for bullets:
 ```clojure
 (def bullet-roles
   {::movement bullet-movement-role
-   ::restrict-distance restrict-distance-role})
+   ::lifespan lifespan-role
+   ::collision bullet-collision})
 ```
 
 We would like to share the shooting logic with both the player and non-player entities. We'll use two functions, `shoot` and `shooter-shoot`. `shoot` takes a `UnityEngine.Vector2` starting position `start` and an angle `bearing`, and creates a new bullet at that position and angle, returning the bullet.

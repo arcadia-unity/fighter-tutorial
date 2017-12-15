@@ -81,9 +81,7 @@
 ;;           (retire bullet))))))
 
 ;; ;; ------------------------------------------------------------
-;; ;; restrict distance from shooter (bullet range)
-
-;; ;; should be time-based
+;; ;; bullet lifespans
 
 ;; (defrole lifespan-role 
 ;;   :state {:start System.DateTime/Now
@@ -106,7 +104,7 @@
 
 ;; (def bullet-roles
 ;;   {::movement bullet-movement-role
-;;    ::lifespan (assoc-in lifespan-role [:state :lifespan] 2e3) ;; bullets last two seconds
+;;    ::lifespan lifespan-role 
 ;;    ::collision bullet-collision})
 
 ;; ;; ------------------------------------------------------------

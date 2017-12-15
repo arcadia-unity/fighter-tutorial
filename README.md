@@ -264,7 +264,8 @@ We would like to share the shooting logic with both the player and non-player en
       (.MoveRotation rb bearing))
     (roles+ bullet
       (-> bullet-roles
-          (assoc-in [::restrict-distance :state :start] start)))
+          (assoc-in [::lifespan :state :start] System.DateTime/Now)
+          (assoc-in [::lifespan :state :lifespan] 2000)))
     bullet))
 
 (defn shooter-shoot [obj]

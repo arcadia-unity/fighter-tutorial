@@ -145,6 +145,7 @@ Roles specify callbacks that run in response to Unity messages, as well as an op
   (with-cmpt obj [rb Rigidbody2D]          ; Gets the Rigidbody2D component
     (when (wasd-key)                       ; Checks for WASD key
       (.MoveRotation rb (abs-angle (controller-vector))) ; Rotates towards key
+      (set! (.angularVelocity rb) 0)
       (.AddForce rb                                      ; Moves forwards
         (v2* (bearing-vector (.rotation rb))
              3)))))

@@ -150,7 +150,7 @@ Roles specify callbacks that run in response to Unity messages, as well as an op
         (v2* (bearing-vector (.rotation rb))
              3)))))
 
-;; Associates the FixedUpdate Unity message with a var in a "role" map
+;; Associates the FixedUpdate Unity message with a var in a role map
 (def player-movement-role
   {:fixed-update #'player-movement-fixed-update})
 ```

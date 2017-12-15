@@ -297,8 +297,8 @@ We add this functionality to the player by going back and editing `player-roles`
 We can create the enemy using the same technique: define roles, attach them to a GameObject. Note the reuse of `shooter-shoot`.
 
 ```clojure
-;; villain shooting
-(defrole villain-shooting-role
+;; enemy shooting
+(defrole enemy-shooting-role
   :state {:last-shot System.DateTime/Now}
   (update [obj k]
     (let [{:keys [target last-shot]} (state obj k)
@@ -309,8 +309,8 @@ We can create the enemy using the same technique: define roles, attach them to a
         (update-state obj k assoc :last-shot now)
         (shooter-shoot obj)))))
 
-;; villain movement
-(defrole villain-movement-role
+;; enemy movement
+(defrole enemy-movement-role
   :state {:target nil}
   (fixed-update [obj k]
     (let [{:keys [target]} (state obj k)]
@@ -325,15 +325,15 @@ We can create the enemy using the same technique: define roles, attach them to a
                 (+ (.rotation rb1)
                    (Mathf/Clamp -1 rot-diff 1))))))))))
 
-(def villain-roles
- {::shooting villain-shooting-role
-  ::movement villain-movement-role})
+(def enemy-roles
+ {::shooting enemy-shooting-role
+  ::movement enemy-movement-role})
 
-;; function to construct the villain
-(defn make-villain [protagonist]
- (let [villain (GameObject/Instantiate (Resources/Load "villain" GameObject))]
-   (roles+ villain
-     (-> villain-roles
+;; function to construct the enemy
+(defn make-enemy [protagonist]
+ (let [enemy (GameObject/Instantiate (Resources/Load "villain" GameObject))]
+   (roles+ enemy
+     (-> enemy-roles
          (assoc-in [::movement :state :target] protagonist)))))
 ```
 
@@ -346,7 +346,7 @@ Now we can add the enemy to the `setup` function:
   (let [player (GameObject/Instantiate (Resources/Load "fighter"))]
     (set! (.name player) "player")
     (roles+ player player-roles)
-    (make-villain player) ; NEW
+    (make-enemy player) ; NEW
     (reset! player-atom player)))
 ```
 
@@ -362,8 +362,8 @@ To make the player susceptible to the enemy's bullets, we need only give it the 
 To make the enemy susceptible to the player's bullets, we do the same:
 
 ```clojure
-(def villain-roles
-  {::shooting villain-shooting-role
-   ::movement villain-movement-role
+(def enemy-roles
+  {::shooting enemy-shooting-role
+   ::movement enemy-movement-role
    ::health (update health-role :state assoc :health 10)}) ; NEW
 ```

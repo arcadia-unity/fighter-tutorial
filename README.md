@@ -379,17 +379,6 @@ Now we can add the enemy to the `setup` function:
 ```
 
 ```clojure
-(defrole bullet-collision
-  (on-trigger-enter2d [bullet, ^Collider2D collider, k]
-    ;; this part is stupid
-    (when (cmpt (.. collider gameObject) ArcadiaState)
-      (let [obj2 (.. collider gameObject)]
-        (when (state obj2 ::health) ;; there should be a fast has-state? predicate
-          (damage obj2 1)
-          (retire bullet))))))
-```
-
-```clojure
 (def bullet-roles
   {::movement bullet-movement-role
    ::lifespan lifespan-role

@@ -6,11 +6,11 @@
             Collision2D Physics2D]
            ArcadiaState))
 
-;; ;; The following is completed code for the tutorial.
-;; ;; You can follow along by either uncommenting chunks of code as the
-;; ;; tutorial gets to them, or writing your own in step with the
-;; ;; tutorial. To see the full game, uncomment everything below and
-;; ;; run (setup) from the repl.
+;; The following is completed code for the tutorial.
+;; You can follow along by either uncommenting chunks of code as the
+;; tutorial gets to them, or writing your own in step with the
+;; tutorial. To see the full game, uncomment everything below and
+;; run (setup) from the repl.
 
 ;; (def max-velocity 1)
 ;; (def acceleration 0.001)
@@ -45,17 +45,15 @@
 
 ;; ;; ============================================================
 ;; ;; health
-;; ;; can be further parametrized when this is working
-;; (defn check-health [obj k]
-;;   (let [{:keys [health]} (state obj k)]
-;;     (when (<= health 0)
-;;       (retire obj))))
 
 ;; ;; health, remove from scene when zero
 ;; ;; expects to be keyed at ::health
-;; (def health-role
-;;   {:state {:health 1}
-;;    :update #'check-health})
+;; (defrole health-role
+;;   :state {:health 1}
+;;   (update [obj k]
+;;     (let [{:keys [health]} (state obj k)]
+;;       (when (<= health 0)
+;;         (retire obj)))))
 
 ;; (defn damage [obj amt]
 ;;   (update-state obj ::health update :health - amt))
@@ -64,9 +62,6 @@
 ;; ;; bullet
 
 ;; (def bullet-layer (UnityEngine.LayerMask/NameToLayer "bullets"))
-
-;; (defn bullet? [^GameObject obj]
-;;   (= (.layer obj) bullet-layer))
 
 ;; ;; ------------------------------------------------------------
 ;; ;; bullet collision

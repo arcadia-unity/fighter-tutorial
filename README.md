@@ -249,8 +249,7 @@ Finally, the roles map for bullets:
 ```clojure
 (def bullet-roles
   {::movement bullet-movement-role
-   ::lifespan lifespan-role
-   ::collision bullet-collision})
+   ::lifespan lifespan-role})
 ```
 
 We would like to share the shooting logic with both the player and non-player entities. We'll use two functions, `shoot` and `shooter-shoot`. `shoot` takes a `UnityEngine.Vector2` starting position `start` and an angle `bearing`, and creates a new bullet at that position and angle, returning the bullet.
@@ -351,6 +350,50 @@ Now we can add the enemy to the `setup` function:
     (roles+ player player-roles)
     (make-enemy player) ; NEW
     (reset! player-atom player)))
+```
+
+### Damage
+```clojure
+;; health, remove from scene when zero
+;; expects to be keyed at ::health
+(defrole health-role
+  :state {:health 1}
+  (update [obj k]
+    (let [{:keys [health]} (state obj k)]
+      (when (<= health 0)
+        (retire obj)))))
+
+(defn damage [obj amt]
+  (update-state obj ::health update :health - amt))
+```
+
+```clojure
+(defrole bullet-collision
+  (on-trigger-enter2d [bullet, ^Collider2D collider, k]
+    ;; this part is stupid
+    (when (cmpt (.. collider gameObject) ArcadiaState)
+      (let [obj2 (.. collider gameObject)]
+        (when (state obj2 ::health) ;; there should be a fast has-state? predicate
+          (damage obj2 1)
+          (retire bullet))))))
+```
+
+```clojure
+(defrole bullet-collision
+  (on-trigger-enter2d [bullet, ^Collider2D collider, k]
+    ;; this part is stupid
+    (when (cmpt (.. collider gameObject) ArcadiaState)
+      (let [obj2 (.. collider gameObject)]
+        (when (state obj2 ::health) ;; there should be a fast has-state? predicate
+          (damage obj2 1)
+          (retire bullet))))))
+```
+
+```clojure
+(def bullet-roles
+  {::movement bullet-movement-role
+   ::lifespan lifespan-role
+   ::collision bullet-collision}) ; NEW
 ```
 
 To make the player susceptible to the enemy's bullets, we need only give it the `health-role`:

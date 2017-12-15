@@ -23,8 +23,6 @@ Tab into Unity (or open it if it was closed). Arcadia will load.
 
 If you forgot to create the new project in 2D mode, press the `2D` button in the Scene view.
 
-Starter code for the following walkthrough, with the completed file commented out, can be found at `fighter-tutorial/Assets/fighter_tutorial/core.clj`.
-
 ## Overview of the Arcadia Role System
 
 Arcadia provides an opt-in bridge to the scene graph, representing bundles of state and behavior as persistent maps called 'roles'. The `:state` entry holds data, and the other entries associate Unity [messages](https://docs.unity3d.com/Manual/EventFunctions.html) (also known as "event functions") with `IFn` instances, encoded as `:update`, `:fixed-update`, `:on-collision-enter`, etc (the complete list can be found in the `arcadia.core/hook-types` map). When a message is dispatched to the GameObject, any `IFn`s associated with that message via an attached role will be called.
@@ -81,6 +79,8 @@ That is, there are no parameters. The expected signature of a function associate
 More documentation about the role system can be found [here](https://github.com/arcadia-unity/Arcadia/wiki/Using-Arcadia#hooks-and-state).
 
 ## Building the player's avatar
+
+Starter code for the following walkthrough, with the completed file commented out, can be found at `fighter-tutorial/Assets/fighter_tutorial/core.clj`.
 
 First, we define the `ns` form to set up the namespace.
 

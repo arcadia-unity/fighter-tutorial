@@ -19,7 +19,7 @@ Tab into Unity (or open it if it was closed). Arcadia will load.
 6. Once Arcadia has loaded, in the editor menubar select `Arcadia > Build > Internal Namespaces`. This will compile the core Arcadia namespaces for faster startup times.
 7. Open the fighter tutorial scene by going to `File > Open Scene` and selecting `fighter.unity`.
 9. Press the play button at the top of the editor.
-8. Connect to Arcadia using your favorite editor (instructions here).
+8. Connect to Arcadia using your favorite editor ([instructions here](https://github.com/arcadia-unity/Arcadia/wiki/REPL)).
 
 If you forgot to create the new project in 2D mode, press the `2D` button in the Scene view.
 
@@ -45,7 +45,7 @@ This role would be attached to a GameObject `obj` like this:
 (role+ obj ::example-role example-role)
 ```
 
-Here the keys `:update` and `:on-collision-enter` correspond to the `Update` and `OnCollisionEnter` Unity messages. Their values are Clojure vars that will be invoked in response to those Unity messages. The value associated with `:update`, in this case the var `#'some-update-function`, will run every frame, because Unity triggers the `Update` message every frame. Similarly, the the value associated with `:on-collision-enter`, here the var `#'some-collision-function`, will run when any GameObject this role is attached to collides with something. The keyword `::example-role` in `role+` is called the _role key_, and is used to look up the `:state` associated with this particular role.
+Here the keys `:update` and `:on-collision-enter` correspond to the [Update](https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnCollisionEnter.html) and [OnCollisionEnter](https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnCollisionEnter.html) Unity messages. Their values are Clojure vars that will be invoked in response to those Unity messages. The value associated with `:update`, in this case the var `#'some-update-function`, will run every frame, because Unity triggers the `Update` message every frame. Similarly, the the value associated with `:on-collision-enter`, here the var `#'some-collision-function`, will run when any GameObject this role is attached to collides with something. The keyword `::example-role` in `role+` is called the _role key_, and is used to look up the `:state` associated with this particular role.
 
 Anything implementing the `IFn` interface for the correct arity is supported as a value for the message entries; that is,
 
@@ -77,6 +77,8 @@ That is, there are no parameters. The expected signature of a function associate
 ```
 (fn [^GameObject obj, role-key] ...)
 ```
+
+More documentation about the role system can be found [here](https://github.com/arcadia-unity/Arcadia/wiki/Using-Arcadia#hooks-and-state).
 
 ## Building the player's avatar
 
@@ -297,12 +299,13 @@ We can create the enemy using the same technique: define roles, attach them to a
 ```clojure
 ;; villain shooting
 (defrole villain-shooting-role
-  :state {:last-shot System.DateTime/Now
-          :target nil}
+  :state {:last-shot System.DateTime/Now}
   (update [obj k]
     (let [{:keys [target last-shot]} (state obj k)
           now System.DateTime/Now]
-      (when (and target (< 1000 (.TotalMilliseconds (.Subtract now last-shot))))
+      (when (and target ;; this is stupid
+                 (not (null-obj? target))
+                 (< 1000 (.TotalMilliseconds (.Subtract now last-shot))))
         (update-state obj k assoc :last-shot now)
         (shooter-shoot obj)))))
 
@@ -331,7 +334,6 @@ We can create the enemy using the same technique: define roles, attach them to a
  (let [villain (GameObject/Instantiate (Resources/Load "villain" GameObject))]
    (roles+ villain
      (-> villain-roles
-         (assoc-in [::shooting :state :target] protagonist)
          (assoc-in [::movement :state :target] protagonist)))))
 ```
 

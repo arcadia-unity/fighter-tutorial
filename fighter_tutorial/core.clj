@@ -6,11 +6,11 @@
             Collision2D Physics2D]
            ArcadiaState))
 
-;; The following is completed code for the tutorial.
-;; You can follow along by either uncommenting chunks of code as the
-;; tutorial gets to them, or writing your own in step with the
-;; tutorial. To see the full game, uncomment everything below and
-;; run (setup) from the repl.
+;; ;; The following is completed code for the tutorial.
+;; ;; You can follow along by either uncommenting chunks of code as the
+;; ;; tutorial gets to them, or writing your own in step with the
+;; ;; tutorial. To see the full game, uncomment everything below and
+;; ;; run (setup) from the repl.
 
 ;; (def max-velocity 1)
 ;; (def acceleration 0.001)
@@ -173,12 +173,13 @@
 ;; ;; villain shooting
 
 ;; (defrole villain-shooting-role
-;;   :state {:last-shot System.DateTime/Now
-;;           :target nil}
+;;   :state {:last-shot System.DateTime/Now}
 ;;   (update [obj k]
 ;;     (let [{:keys [target last-shot]} (state obj k)
 ;;           now System.DateTime/Now]
-;;       (when (and target (< 1000 (.TotalMilliseconds (.Subtract now last-shot))))
+;;       (when (and target ;; this is stupid
+;;                  (not (null-obj? target))
+;;                  (< 1000 (.TotalMilliseconds (.Subtract now last-shot))))
 ;;         (update-state obj k assoc :last-shot now)
 ;;         (shooter-shoot obj)))))
 
@@ -212,7 +213,6 @@
 ;;   (let [villain (GameObject/Instantiate (Resources/Load "villain" GameObject))]
 ;;     (roles+ villain
 ;;       (-> villain-roles
-;;           (assoc-in [::shooting :state :target] protagonist)
 ;;           (assoc-in [::movement :state :target] protagonist)))))
 
 ;; ;; ============================================================

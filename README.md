@@ -87,26 +87,31 @@ First, we define the `ns` form to set up the namespace.
 ```clojure
 (ns fighter-tutorial.core
   (:use arcadia.core arcadia.linear)
-  (:import [UnityEngine Collider2D Physics
+  (:require [arcadia.sugar :as a]    ; For augmented destructuring and imperative code
+            [arcadia.scene :as scn]) ; For keeping track of stuff we put in the scene
+  (:import [UnityEngine Collider2D Physics ; Heavy interop...
             GameObject Input Rigidbody2D
             Vector2 Mathf Resources Transform
             Collision2D Physics2D]
-           ArcadiaState))
+           ArcadiaState)) ; Handles our state
 ```
 
 Let's start by making an inert GameObject representing the player. We'll do this by [instantiating](https://docs.unity3d.com/Manual/InstantiatingPrefabs.html) the `"fighter"` [prefab](https://docs.unity3d.com/Manual/Prefabs.html).
 
 ```clojure
-(defonce player-atom
-  (atom nil))
-
 (defn setup []
-  (when @fighter-atom (retire @player-atom)) ; `retire` removes a GameObject from the scene
+  ;; `retire` any objects registered with the label `::player`, removing them from the scene
+  (scn/retire ::player)
+  ;; Load the "fighter" prefab into the scene graph
   (let [player (GameObject/Instantiate (Resources/Load "fighter"))]
-    (reset! player-atom player)))
+    ;; Register the player GameObject with the label `::player`
+    (scn/register player ::player)
+    ;; Set its name
+    (set! (.name player) "player")))
 ```
 
 After evaluating this code, run `(setup)` in the REPL. A new GameObject should appear, looking like this:
+![]()
 
 If we call `(setup)` multiple times at this point, the scene will seem to remain the same, but really we're destroying and recreating the player every time.
 
@@ -174,10 +179,11 @@ Finally, we modify the `setup` function to attach the state and behavior specifi
 
 ```clojure
 (defn setup []
-  (when @fighter-atom (retire @fighter-atom))
-  (let [fighter (GameObject/Instantiate (Resources/Load "fighter"))]
-    (reset! fighter-atom fighter)
-    (roles+ fighter player-roles))) ; NEW
+  (scn/retire ::player)
+  (let [player (GameObject/Instantiate (Resources/Load "fighter"))]
+    (scn/register player ::player)
+    (set! (.name player) "player")
+    (roles+ player player-roles))) ; NEW
 ```
 
 From the REPL, call `(setup)` again. Back in the Unity Game view, the player should now be controllable using the `w` `a` `s` `d` keys.
@@ -353,6 +359,9 @@ Now we can add the enemy to the `setup` function:
 ```
 
 ### Damage
+
+To represent characters capable of taking damage, we can add a `:health` key to state and some logic to remove a player when the health reaches zero. We also define a `damage` function that removes health from an entity.
+
 ```clojure
 ;; health, remove from scene when zero
 ;; expects to be keyed at ::health
@@ -367,16 +376,18 @@ Now we can add the enemy to the `setup` function:
   (update-state obj ::health update :health - amt))
 ```
 
+We can then set a role for bullets by which they remove health from entities they collide with.
+
 ```clojure
 (defrole bullet-collision
   (on-trigger-enter2d [bullet, ^Collider2D collider, k]
-    ;; this part is stupid
-    (when (cmpt (.. collider gameObject) ArcadiaState)
-      (let [obj2 (.. collider gameObject)]
-        (when (state obj2 ::health) ;; there should be a fast has-state? predicate
-          (damage obj2 1)
-          (retire bullet))))))
+    (let [obj2 (.gameObject collider)]
+      (when (state obj2 ::health)
+        (damage obj2 1)
+        (retire bullet)))))
 ```
+
+Now we add this role to `bullet-roles`:
 
 ```clojure
 (def bullet-roles

@@ -121,7 +121,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1234468789}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Bounds
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -155,7 +155,7 @@ GameObject:
   - component: {fileID: 1385253732}
   - component: {fileID: 1385253731}
   m_Layer: 0
-  m_Name: New Sprite
+  m_Name: Bound
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -230,7 +230,7 @@ GameObject:
   - component: {fileID: 1421958061}
   - component: {fileID: 1421958060}
   m_Layer: 0
-  m_Name: New Sprite (2)
+  m_Name: Bound (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -305,7 +305,7 @@ GameObject:
   - component: {fileID: 1590475645}
   - component: {fileID: 1590475644}
   m_Layer: 0
-  m_Name: New Sprite (1)
+  m_Name: Bound (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -468,7 +468,7 @@ GameObject:
   - component: {fileID: 1738630046}
   - component: {fileID: 1738630045}
   m_Layer: 0
-  m_Name: New Sprite (3)
+  m_Name: Bound (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

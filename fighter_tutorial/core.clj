@@ -221,7 +221,7 @@
 ;; ;; setup
 
 ;; (defn setup []
-;;   (scn/retire ::enemy ::bullet ::player) ;; i suppose this should be retire-or
+;;   (scn/retire ::enemy ::bullet ::player)
 ;;   (let [player (GameObject/Instantiate (Resources/Load "fighter"))]
 ;;     (scn/register player ::player)
 ;;     (set! (.name player) "player")

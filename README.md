@@ -311,27 +311,32 @@ We can create the enemy using the same technique: define roles, attach them to a
   (update [obj k]
     (let [{:keys [target last-shot]} (state obj k)
           now System.DateTime/Now]
-      (when (and target ;; this is stupid
-                 (not (null-obj? target))
+      (when (and (obj-nil target) ; check that the target is neither nil nor a null object
                  (< 1000 (.TotalMilliseconds (.Subtract now last-shot))))
         (update-state obj k assoc :last-shot now)
-        (shooter-shoot obj)))))
+        (shooter-shoot obj enemy-bullets-layer)))))
 
 ;; enemy movement
 (defrole enemy-movement-role
   :state {:target nil}
   (fixed-update [obj k]
-    (let [{:keys [target]} (state obj k)]
-      (when (not (null-obj? target))
-        (with-cmpt obj [rb1 Rigidbody2D]
-          (with-cmpt target [rb2 Rigidbody2D]
-            (let [pos-diff (v2- (.position rb2) (.position rb1))
-                  rot-diff (Vector2/SignedAngle
-                             (bearing-vector (.rotation rb1))
-                             pos-diff)]
-              (.MoveRotation rb1
-                (+ (.rotation rb1)
-                   (Mathf/Clamp -1 rot-diff 1))))))))))
+    ;; Make sure the target is neither nil nor the null object using
+    ;; `obj-nil`
+    (when-let [target (obj-nil (:target (state obj k)))]
+      ;; We're going to use augmented destructuring to access
+      ;; components of GameObjects using `arcadia.sugar/with-cmpt`,
+      ;; and access object properties and fields using
+      ;; `arcadia.sugar/o`. See the docs for `arcadia.sugar/let` for
+      ;; more details.
+      (a/let [(a/with-cmpt rb1 Rigidbody2D) obj                    ; Get the Rigidbody2D component
+              (a/o pos1 position, rot1 rotation) rb1               ; Get the position and rotation from it
+              (a/with-cmpt (a/o pos2 position) Rigidbody2D) target ; Get the position of the target's Rigidbody2D
+              pos-diff (v2- pos2 pos1)                             ; Get the difference vector from the object to the target
+              rot-diff (Vector2/SignedAngle                        ; Get the rotation needed to face the target
+                         (bearing-vector rot1)
+                         pos-diff)]
+        (.MoveRotation rb1  ; rotate the Rigidbody2D towards the target, clamped to one degree per frame
+          (+ rot1 (Mathf/Clamp -1 rot-diff 1)))))))
 
 (def enemy-roles
  {::shooting enemy-shooting-role
@@ -339,23 +344,23 @@ We can create the enemy using the same technique: define roles, attach them to a
 
 ;; function to construct the enemy
 (defn make-enemy [protagonist]
- (let [enemy (GameObject/Instantiate (Resources/Load "villain" GameObject))]
-   (roles+ enemy
-     (-> enemy-roles
-         (assoc-in [::movement :state :target] protagonist)))))
+  (let [enemy (GameObject/Instantiate (Resources/Load "villain" GameObject))]
+    (scn/register enemy ::enemy)
+    (roles+ enemy
+      (-> enemy-roles
+          (assoc-in [::movement :state :target] protagonist)
+          (assoc-in [::shooting :state :target] protagonist)))))
 ```
 
 Now we can add the enemy to the `setup` function:
 ```clojure
 (defn setup []
-  (let [bullets (UnityEngine.LayerMask/NameToLayer "bullets")]
-    (Physics2D/IgnoreLayerCollision (int bullets) (int bullets) true))
-  (when @player-atom (retire @player-atom))
+  (scn/retire ::enemy ::bullet ::player)
   (let [player (GameObject/Instantiate (Resources/Load "fighter"))]
+    (scn/register player ::player)
     (set! (.name player) "player")
     (roles+ player player-roles)
-    (make-enemy player) ; NEW
-    (reset! player-atom player)))
+    (make-enemy player))) ; NEW
 ```
 
 ### Damage

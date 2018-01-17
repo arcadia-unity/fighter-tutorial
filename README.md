@@ -284,7 +284,7 @@ We would like to share the shooting logic with both the player and non-player en
     (let [bullet (shoot-bullet (.position rb) (.rotation rb))]
       (set! (.layer bullet) layer)
       bullet)))
-
+```
 
 Now we give the player the ability to shoot bullets by hitting space:
 

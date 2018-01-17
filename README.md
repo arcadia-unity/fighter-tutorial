@@ -16,10 +16,10 @@ This tutorial assumes Unity version 2017.2.0f3, but should work in other recent 
 
 Tab into Unity (or open it if it was closed). Arcadia will load.
 
-6. Once Arcadia has loaded, in the editor menubar select `Arcadia > Build > Internal Namespaces`. This will compile the core Arcadia namespaces for faster startup times.
-7. Open the fighter tutorial scene by going to `File > Open Scene` and selecting `fighter.unity`.
-9. Press the play button at the top of the editor.
-8. Connect to Arcadia using your favorite editor ([instructions here](https://github.com/arcadia-unity/Arcadia/wiki/REPL)).
+1. Once Arcadia has loaded, in the editor menubar select `Arcadia > Build > Internal Namespaces`. This will compile the core Arcadia namespaces for faster startup times.
+2. Open the fighter tutorial scene by going to `File > Open Scene` and selecting `fighter.unity`.
+3. Press the play button at the top of the editor.
+4. Connect to Arcadia using your favorite editor ([instructions here](https://github.com/arcadia-unity/Arcadia/wiki/REPL)).
 
 If you forgot to create the new project in 2D mode, press the `2D` button in the Scene view.
 
@@ -56,10 +56,13 @@ would also work. Clojure vars, which also implement `IFn`, are greatly preferred
 The parameters expected of the `IFn` associated with a key are determined by the parameters expected of the corresponding Unity event function. A callback should have the same parameters as the corresponding Unity event function, plus an additional first parameter for the GameObject itself, and an additional final parameter for the key.
 
 For example, the signature of the [OnCollisionEnter](https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnCollisionEnter.html) message is
+
 ```
 GameObject.OnCollisionEnter(Collision)
 ```
+
 The signature of a function associated with the OnCollisionEnter message via `:on-collision-enter` is therefore
+
 ```
 (fn [^GameObject obj, ^UnityEngine.Collision collision, role-key] ...)
 ```
@@ -110,8 +113,7 @@ Let's start by making an inert GameObject representing the player. We'll do this
     (set! (.name player) "player")))
 ```
 
-After evaluating this code, run `(setup)` in the REPL. A new GameObject should appear, looking like this:
-![]()
+After evaluating this code, run `(setup)` in the REPL. A new GameObject should appear, looking like this: ![]()
 
 If we call `(setup)` multiple times at this point, the scene will seem to remain the same, but really we're destroying and recreating the player every time.
 
@@ -202,6 +204,7 @@ We'll need:
 Let's start with the time restriction, so bullets don't pile up.
 
 We could define a role for this the way we've been doing, like so:
+
 ```clojure
 (defn lifespan-update [obj k]
   (let [{:keys [start lifespan]} (state obj k)]
@@ -258,38 +261,39 @@ Finally, the roles map for bullets:
    ::lifespan lifespan-role})
 ```
 
-We would like to share the shooting logic with both the player and non-player entities. We'll use two functions, `shoot` and `shooter-shoot`. `shoot` takes a `UnityEngine.Vector2` starting position `start` and an angle `bearing`, and creates a new bullet at that position and angle, returning the bullet.
+We would like to share the shooting logic with both the player and non-player entities. We'll use two functions, `shoot-bullet` and `shoot`. `shoot-bullet` takes a `UnityEngine.Vector2` starting position `start` and an angle `bearing`, and creates a new bullet at that position and angle, returning the bullet.
 
-`shooter-shoot` takes a GameObject and `shoot`s a bullet forward from it, set to ignore collisions with the GameObject itself. [RAMSEY: is this necessary for triggers?]
+`shoot` takes a GameObject and shoots a bullet forward from it, set to ignore collisions with the GameObject itself.
 
 ```clojure
-(defn shoot [start bearing]
-  (let [bullet (GameObject/Instantiate (Resources/Load "missile" GameObject))]
-    (with-cmpt bullet [rb Rigidbody2D
-                       tr Transform]
-      (set! (.position tr) (v3 (.x start) (.y start) 1))
-      (.MoveRotation rb bearing))
+(defn shoot-bullet [start bearing]
+  (a/let [bullet (GameObject/Instantiate
+                   (Resources/Load "missile" GameObject))
+          (a/with-cmpt rb Rigidbody2D, tr Transform) bullet]
+    (scn/register bullet ::bullet)
+    (set! (.position tr) (v3 (.x start) (.y start) 1))
+    (.MoveRotation rb bearing)
     (roles+ bullet
       (-> bullet-roles
           (assoc-in [::lifespan :state :start] System.DateTime/Now)
           (assoc-in [::lifespan :state :lifespan] 2000)))
     bullet))
 
-(defn shooter-shoot [obj]
+(defn shoot [obj layer]
   (with-cmpt obj [rb Rigidbody2D]
-    (let [bullet (shoot (.position rb) (.rotation rb))]
-      (do-ignore-collisions (cmpt obj Collider2D) (cmpt bullet Collider2D))
+    (let [bullet (shoot-bullet (.position rb) (.rotation rb))]
+      (set! (.layer bullet) layer)
       bullet)))
-```
+
 
 Now we give the player the ability to shoot bullets by hitting space:
 
 ```clojure
 (defrole player-shooting-role
-  (fixed-update [obj k]
+  (update [obj k]
     (with-cmpt obj [rb Rigidbody2D]
       (when (Input/GetKeyDown "space")
-        (shooter-shoot obj)))))
+        (shoot obj player-bullets-layer)))))
 ```
 
 We add this functionality to the player by going back and editing `player-roles`:
@@ -302,7 +306,7 @@ We add this functionality to the player by going back and editing `player-roles`
 
 ## The enemy
 
-We can create the enemy using the same technique: define roles, attach them to a GameObject. Note the reuse of `shooter-shoot`.
+We can create the enemy using the same technique: define roles, attach them to a GameObject. Note the reuse of `shoot`.
 
 ```clojure
 ;; enemy shooting
@@ -314,7 +318,7 @@ We can create the enemy using the same technique: define roles, attach them to a
       (when (and (obj-nil target) ; check that the target is neither nil nor a null object
                  (< 1000 (.TotalMilliseconds (.Subtract now last-shot))))
         (update-state obj k assoc :last-shot now)
-        (shooter-shoot obj enemy-bullets-layer)))))
+        (shoot obj enemy-bullets-layer)))))
 
 ;; enemy movement
 (defrole enemy-movement-role
@@ -353,6 +357,7 @@ We can create the enemy using the same technique: define roles, attach them to a
 ```
 
 Now we can add the enemy to the `setup` function:
+
 ```clojure
 (defn setup []
   (scn/retire ::enemy ::bullet ::player)

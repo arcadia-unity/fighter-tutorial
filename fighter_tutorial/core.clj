@@ -108,17 +108,18 @@
 ;; shooting
 
 (defn shoot-bullet [start bearing]
-  (a/let [bullet (GameObject/Instantiate
-                   (Resources/Load "missile" GameObject))
-          (a/with-cmpt rb Rigidbody2D, tr Transform) bullet]
-    (scn/register bullet ::bullet)
-    (set! (.position tr) (v3 (.x start) (.y start) 1))
-    (.MoveRotation rb bearing)
-    (roles+ bullet
-      (-> bullet-roles
-          (assoc-in [::lifespan :state :start] System.DateTime/Now)
-          (assoc-in [::lifespan :state :lifespan] 2000)))
-    bullet))
+  (let [bullet (GameObject/Instantiate
+                 (Resources/Load "missile" GameObject))]
+    (with-cmpt bullet [rb Rigidbody2D,
+                       tr Transform]
+      (scn/register bullet ::bullet)
+      (set! (.position tr) (v3 (.x start) (.y start) 1))
+      (.MoveRotation rb bearing)
+      (roles+ bullet
+        (-> bullet-roles
+            (assoc-in [::lifespan :state :start] System.DateTime/Now)
+            (assoc-in [::lifespan :state :lifespan] 2000)))
+      bullet)))
 
 (defn shoot [obj layer]
   (with-cmpt obj [rb Rigidbody2D]

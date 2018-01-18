@@ -231,19 +231,6 @@ This can get a little tedious, however. Arcadia provides a `defrole` macro to sp
 
 We'll use `defrole` from now on.
 
-We want to avoid bullet self-collision. In Unity we can do this by setting the `"bullets"` layer to avoid collisions with itself. Modify `setup` to do so:
-
-```clojure
-(defn setup []
-  (let [bullets (UnityEngine.LayerMask/NameToLayer "bullets")]         ; NEW
-    (Physics2D/IgnoreLayerCollision (int bullets) (int bullets) true)) ; NEW
-  (when @player-atom (retire @player-atom))
-  (let [player (GameObject/Instantiate (Resources/Load "fighter"))]
-    (set! (.name player) "player")
-    (roles+ player player-roles)
-    (reset! player-atom player)))
-```
-
 Bullet movement is just:
 
 ```clojure
@@ -267,17 +254,18 @@ We would like to share the shooting logic with both the player and non-player en
 
 ```clojure
 (defn shoot-bullet [start bearing]
-  (a/let [bullet (GameObject/Instantiate
-                   (Resources/Load "missile" GameObject))
-          (a/with-cmpt rb Rigidbody2D, tr Transform) bullet]
-    (scn/register bullet ::bullet)
-    (set! (.position tr) (v3 (.x start) (.y start) 1))
-    (.MoveRotation rb bearing)
-    (roles+ bullet
-      (-> bullet-roles
-          (assoc-in [::lifespan :state :start] System.DateTime/Now)
-          (assoc-in [::lifespan :state :lifespan] 2000)))
-    bullet))
+  (let [bullet (GameObject/Instantiate
+                 (Resources/Load "missile" GameObject))]
+    (with-cmpt bullet [rb Rigidbody2D,
+                       tr Transform]
+      (scn/register bullet ::bullet)
+      (set! (.position tr) (v3 (.x start) (.y start) 1))
+      (.MoveRotation rb bearing)
+      (roles+ bullet
+        (-> bullet-roles
+            (assoc-in [::lifespan :state :start] System.DateTime/Now)
+            (assoc-in [::lifespan :state :lifespan] 2000)))
+      bullet)))
 
 (defn shoot [obj layer]
   (with-cmpt obj [rb Rigidbody2D]

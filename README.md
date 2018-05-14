@@ -137,6 +137,13 @@ Now let's define some helper functions for input and math.
       (Input/GetKey "a")
       (Input/GetKey "s")
       (Input/GetKey "d")))
+      
+
+(defn move-forward [^Rigidbody2D rb, distance]
+  (.MovePosition rb
+    (v2+ (.position rb)
+      (v2* (bearing-vector (.rotation rb))
+        distance))))
 ```
 
 ### Player Movement

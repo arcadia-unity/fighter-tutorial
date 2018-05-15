@@ -146,7 +146,7 @@ Now let's define some helper functions for input and math.
         distance))))
 ```
 
-We will also make use of layers. Lets define them so that we don't need to look them up more than once.
+We will also make use of layers to manage what bullets can collide with. First add `player-bullets` and `enemy-bullets` as custom layers in Unity. We do that by clicking `Edit -> Project Settings -> Tags and Layers`, then expand `Layers` and add the layers `player-bullets` and `enemy-bullets`. Then lets define them in the code so that we don't need to look them up more than once.
 
 ```
 (def player-bullets-layer (UnityEngine.LayerMask/NameToLayer "player-bullets"))

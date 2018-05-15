@@ -143,7 +143,15 @@ Now let's define some helper functions for input and math.
   (.MovePosition rb
     (v2+ (.position rb)
       (v2* (bearing-vector (.rotation rb))
-        distance))))
+        distance))))
+```
+
+We will also make use of layers. Lets define them so that we don't need to look them up more than once.
+
+```
+(def player-bullets-layer (UnityEngine.LayerMask/NameToLayer "player-bullets"))
+
+(def enemy-bullets-layer (UnityEngine.LayerMask/NameToLayer "enemy-bullets"))
 ```
 
 ### Player Movement

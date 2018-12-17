@@ -1,3 +1,5 @@
+_This tutorial was written for an older version of Arcadia and is not expected to work on the `beta` (of December 2018) release or anything afterwards._
+
 # Arcadia for Clojure Programmers
 
 This tutorial assumes familiarity with Clojure, and a basic understanding of Unity's scene graph and messaging system.

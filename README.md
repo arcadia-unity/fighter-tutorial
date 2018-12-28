@@ -139,7 +139,24 @@ Now let's define some helper functions for input and math.
       (Input/GetKey "a")
       (Input/GetKey "s")
       (Input/GetKey "d")))
+      
+
+(defn move-forward [^Rigidbody2D rb, distance]
+  (.MovePosition rb
+    (v2+ (.position rb)
+      (v2* (bearing-vector (.rotation rb))
+        distance))))
 ```
+
+We will also make use of layers to manage what bullets can collide with. First add `player`, `enemy`, `player-bullets` and `enemy-bullets` as custom layers in Unity. We do that by clicking `Edit -> Project Settings -> Tags and Layers`, then expand `Layers` and add the layers `player`, `enemy`, `player-bullets` and `enemy-bullets`. Then lets define them in the code so that we don't need to look them up more than once.
+
+```
+(def player-bullets-layer (UnityEngine.LayerMask/NameToLayer "player-bullets"))
+
+(def enemy-bullets-layer (UnityEngine.LayerMask/NameToLayer "enemy-bullets"))
+```
+
+After that we have to define which layers collides with which. To do that we go to `Edit -> Project Settings -> Physics 2D`, and under `Layer Expansion Matrix` we deselect the collisions between `enemy` and `enemy-bullets`, and between `player` and `player-bullets`. Now all the layers are ready!
 
 ### Player Movement
 
